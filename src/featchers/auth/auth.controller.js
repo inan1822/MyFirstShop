@@ -10,34 +10,45 @@ const generateCode = () => {
 export const register = async (req, res) => {
     try {
         const { name, email, password } = req.body
+
         const exisUser = await userModel.findOne({ email })
         if (exisUser) {
             return res.status(409).json({
                 status: "409",
                 message: "user with this email or name already exists",
                 data: null
-            })
+            });
         }
+
         if (!name || !email || !password) {
             return res.status(400).json({
                 status: "400",
                 message: "all fields are required",
                 data: null
-            })
+            });
         }
-        const passwordHash = await bcrypt.hash(password, 10)
+
         const code = generateCode()
-        const newUser = await userModel.create({ name, email, password: passwordHash, sendVerificationCode: code })
+
+        // const passwordHash = await bcrypt.hash(password, 10)
+        const newUser = await userModel.create({
+            name,
+            email,
+            password,
+            sendVerificationCode: code,
+            sendVerificationCodeExpiry: Date.now() + 24 * 60 * 60 * 1000
+        });
+
         await sendVerificationEmail(email, code)
 
         res.status(201).json({
             status: "201",
             message: "user created successfully",
             data: newUser
-        })
+        });
 
     } catch (error) {
-        console.log(error)
+        console.log(error);
         return res.status(500).json({
             status: "500",
             message: "cant register user",
@@ -48,7 +59,7 @@ export const register = async (req, res) => {
 
 export async function verifyEmail(req, res) {
     try {
-        const { email, code } = req.body;
+        const { email, code } = req.body
 
         const user = await userModel.findOne({ email });
 
@@ -96,7 +107,17 @@ export const login = async (req, res) => {
                 message: "user not verified",
                 data: null
             })
+        if (emailUser.role === "admin") {
+            const code = generateCode()
 
+            emailUser.twoFactorCode = code
+            emailUser.twoFactorExpiry = Date.now() + 10 * 60 * 1000  // 10 minutes
+
+            await emailUser.save()
+            await sendVerificationEmail(email, code)  // reuse your existing function
+
+            return res.status(200).json({ message: "2FA code sent to your email" })
+        }
         const token = jwt.sign(
             // כדאי לקרוא לזה id, וזה מה שיהיה בתוך req.user אחרי ה-verify
             {
@@ -122,6 +143,42 @@ export const login = async (req, res) => {
             status: "500",
             message: "internal server error",
             data: null
+        })
+    }
+}
+
+export const verifyTwoFactor = async (req, res) => {
+    try {
+        const { email, code } = req.body
+
+        const user = await userModel.findOne({
+            email,
+            twoFactorCode: code,
+            twoFactorExpiry: { $gt: Date.now() }  // not expired
+        })
+
+        if (!user) return res.status(400).json({ message: "Invalid or expired code" })
+
+        // Clear the code after use
+        user.twoFactorCode = null
+        user.twoFactorExpiry = null
+        await user.save()
+
+        const token = jwt.sign(
+
+            {
+                id: user._id,
+                name: user.name
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: "2h" }
+        )
+        res.status(200).json({ message: "Login successful as admin", token })
+    } catch (error) {
+        return res.status(500).json({
+            status: "500",
+            message: "internal server error",
+            data: error.message
         })
     }
 }

@@ -1,5 +1,6 @@
 
 import product from "./Products.Model.js"
+import { uploadToCloud, deleteImage } from "./cloudinary.service.js"
 
 export const createProduct = async (req, res) => {
     try {
@@ -7,9 +8,11 @@ export const createProduct = async (req, res) => {
         const { Title, Price } = req.body
         const UserId = req.user.id
         const Username = req.user.name
+        const usedtitle = await product.findOne({ Title, createdBy: UserId })
 
 
-        if (!req.user || !req.user.id) {
+
+        if (!req.user || !UserId) {
             return res.status(401).json({
                 status: "401",
                 message: "You must be logged in to create a product",
@@ -23,8 +26,22 @@ export const createProduct = async (req, res) => {
                 message: "User didnt provide title or price",
                 data: null
             })
+        if (usedtitle)
+            return res.status(400).json({
+                status: "400",
+                message: "cant use same title more then one time",
+                data: null
+            })
 
-        const newProduct = await product.create({ Title, Price, createdBy: UserId })
+        if (req.file) {
+            const result = await uploadToCloud(req.file.buffer, "image")
+            req.body.imageUrl = result.secure_url
+            req.body.imagePublicId = result.public_id
+
+        }
+
+
+        const newProduct = await product.create({ Title, Price, imageUrl: req.body.imageUrl, imagePublicId: req.body.imagePublicId, createdBy: UserId })
 
         return res.status(200).json({
             status: "200",
@@ -115,9 +132,9 @@ export const getUsersProducts = async (req, res) => {
 }
 export const deleteProduct = async (req, res) => {
     try {
-        const productId = req.params.id
-        const userProducts = await product.findByIdAndDelete({ _id: productId })
 
+        const productId = req.params.id
+        const userProducts = await product.findById({ _id: productId })
         if (!userProducts)
             return res.status(404).json({
                 status: "404",
@@ -125,12 +142,16 @@ export const deleteProduct = async (req, res) => {
                 data: null
             })
 
+        const imgaeId = userProducts.imagePublicId
+        if (imgaeId) {
+            await deleteImage(imgaeId)
+        }
 
-
+        await product.findByIdAndDelete({ _id: productId })
         return res.status(200).json({
             status: "200",
             message: "Successfully deleted product",
-            data: userProducts
+            data: null
         })
     } catch (error) {
         return res.status(500).json({

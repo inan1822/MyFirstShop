@@ -26,5 +26,22 @@ export const sendVerificationEmail = async (to, code) => {
         console.log(error, "Email didn't send")
     }
 }
+export const sendResetPasswordEmail = async (to, code) => {
+    try {
+        await transporter.sendMail({
+            from: `"My App" <${process.env.EMAIL_USER}>`,
+            to: to,
+            subject: "Your verification code to reset your password",
+            text: `Your verification code is: ${code}`,
+            html: `
+                <h1>Your verification code is: ${code}</h1>
+                <p>If you didn't request this, please secure your account.</p>
+            `
+        })
+        console.log("Email sent successfully")
+    } catch (error) {
+        console.log(error, "Email didn't send")
+    }
+}
 
 

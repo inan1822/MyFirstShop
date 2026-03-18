@@ -1,22 +1,4 @@
 import mongoose from "mongoose"
-import bcrypt from "bcrypt"
-
-
-const orderItemSchema = new mongoose.Schema({
-    ObjectId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "user",
-        required: true
-    },
-    quantity: {
-        type: Number,
-        required: true,
-        min: 1,
-        default: 1
-    }
-})
-
-
 
 const addressSchema = new mongoose.Schema({
     street: { type: String, required: true },
@@ -25,68 +7,67 @@ const addressSchema = new mongoose.Schema({
     zipCode: { type: String, required: true }
 })
 
-
-
-const userSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 2
+const OrderItemSchema = new mongoose.Schema({
+    productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "product",
+        required: true
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true
+    quantity: {
+        type: Number,
+        required: true
     },
-    sendVerificationCode: String,
-    isVerified: {
-        type: Boolean,
-        default: false
-    },
-    sendVerificationCodeExpiry: Date,
-
-    password: {
-        type: String,
-        required: true,
-        validate: {
-            validator: function (value) {
-                // Only validate raw password (not hashed)
-                return value.length >= 8
-            },
-            message: "Password must be at least 8 characters long"
-        }
-    },
-    twoFactorCode: String,
-    twoFactorExpiry: Date,
-    resetPasswordToken: String,
-    resetPasswordExpiry: Date,
-
-    role: {
-        type: String,
-        enum: ["customer", "admin"],
-        default: "customer"
-    },
-
-    addresses: {
-        type: [addressSchema],
-        default: []
-    },
-
-    cart: {
-        type: [cartItemSchema],
-        default: []
+    priceSnapshot: {
+        type: Number,
+        required: true
     }
-
-}, { timestamps: true })
-
-
-
-orderItemSchema.pre("save", async function () {
-    if (!this.isModified("password")) return
-    this.password = await bcrypt.hash(this.password, 10)
 })
 
-const userModel = mongoose.model("order", orderItemSchema)
-export default userModel
+const orderSchema = new mongoose.Schema({
+    orderedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+        required: true
+    },
+    items: {
+        type: [OrderItemSchema],
+        required: true
+    },
+    address: {
+        type: addressSchema,
+        required: true
+    },
+    totalPrice: {
+        type: Number,
+        required: true
+    },
+    shippingCost: {
+        type: Number,
+        default: 0
+    },
+    paymentMethod: {
+        type: String,
+        default: 'cash'
+    },
+    paymentStatus: {
+        type: String,
+        enum: ['pending', 'paid', 'failed'],
+        default: 'pending'
+    },
+    orderStatus: {
+        type: String,
+        enum: ['processing', 'shipped', 'delivered', 'cancelled'],
+        default: 'processing'
+    },
+    trackingNumber: {
+        type: String
+    },
+    notes: {
+        type: String
+    }
+},
+    { timestamps: true }
+)
+
+const Order = mongoose.model("order", orderSchema)
+export default Order

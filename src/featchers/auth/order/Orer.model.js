@@ -2,10 +2,10 @@ import mongoose from "mongoose"
 import bcrypt from "bcrypt"
 
 
-const cartItemSchema = new mongoose.Schema({
-    product: {
+const orderItemSchema = new mongoose.Schema({
+    ObjectId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "product",
+        ref: "user",
         required: true
     },
     quantity: {
@@ -83,10 +83,10 @@ const userSchema = new mongoose.Schema({
 
 
 
-userSchema.pre("save", async function () {
+orderItemSchema.pre("save", async function () {
     if (!this.isModified("password")) return
     this.password = await bcrypt.hash(this.password, 10)
 })
 
-const userModel = mongoose.model("user", userSchema)
+const userModel = mongoose.model("order", orderItemSchema)
 export default userModel

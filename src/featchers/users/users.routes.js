@@ -1,20 +1,21 @@
-import { getUser, getAll, deleteUser, updateUser, requestPasswordReset, resetPassword, promoteToAdmin, addAddress, addToCart, removeFromCart, getCart, deleteAddress } from "./users.controller.js"
+import { getUser, getAll, deleteUser, updateUser, promoteToAdmin, addAddress, addToCart, removeFromCart, getCart, deleteMyUser, deleteAddress } from "./users.controller.js"
 import { Router } from "express"
 import { authMiddleware } from "../../shared/middlewares/shared.middlewares.js"
 import { checkPermissions } from "../../shared/middlewares/shared.permissions.js"
 import { isAdmin } from "../../shared/middlewares/shared.admin.js"
+import { validateRequest } from "../../shared/middlewares/validateRequst.js"
+import { userIdParamsSchema, addressIdParamsSchema, productIdParamsSchema, updateUserSchema, addAddressSchema, addToCartSchema, deleteMyUserSchema } from "../../shared/validators/user.schemas.js"
 const userRouter = Router()
 
-userRouter.get("/:id", getUser)
-userRouter.get("/", getAll)
-userRouter.delete("/:id", authMiddleware, checkPermissions, deleteUser)
-userRouter.patch("/:id", authMiddleware, checkPermissions, updateUser)
-userRouter.patch("/:id", authMiddleware, isAdmin, promoteToAdmin)
-userRouter.post("/request-password-reset", requestPasswordReset)
-userRouter.post("/reset-password", resetPassword)
-userRouter.post("/address", authMiddleware, addAddress)
-userRouter.delete("/address/:addressId", authMiddleware, deleteAddress)
-userRouter.post("/cart", authMiddleware, addToCart)
-userRouter.delete("/cart/:productId", authMiddleware, removeFromCart)
+userRouter.get("/admin", authMiddleware, isAdmin, getAll)
 userRouter.get("/cart", authMiddleware, getCart)
-export default userRouter 
+userRouter.get("/:id", validateRequest(userIdParamsSchema, "params"), getUser)
+userRouter.delete("/:id", authMiddleware, checkPermissions, validateRequest(userIdParamsSchema, "params"), validateRequest(deleteMyUserSchema, "body"), deleteMyUser)
+userRouter.delete("/admin/:id", authMiddleware, isAdmin, validateRequest(userIdParamsSchema, "params"), deleteUser)
+userRouter.patch("/:id", authMiddleware, checkPermissions, validateRequest(userIdParamsSchema, "params"), validateRequest(updateUserSchema, "body"), updateUser)
+userRouter.patch("/role/:id", authMiddleware, isAdmin, validateRequest(userIdParamsSchema, "params"), promoteToAdmin)
+userRouter.post("/address", authMiddleware, validateRequest(addAddressSchema, "body"), addAddress)
+userRouter.delete("/address/:addressId", authMiddleware, validateRequest(addressIdParamsSchema, "params"), deleteAddress)
+userRouter.post("/cart", authMiddleware, validateRequest(addToCartSchema, "body"), addToCart)
+userRouter.delete("/cart/:productId", authMiddleware, validateRequest(productIdParamsSchema, "params"), removeFromCart)
+export default userRouter    

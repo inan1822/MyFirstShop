@@ -1,7 +1,9 @@
-import userModel from "./User.model.js"
+
 import bcrypt from "bcrypt"
-import { sendResetPasswordEmail } from "../../shared/utils/mailer.js"
-import crypto from "crypto"
+import productModel from "../products/Products.Model.js"
+import userModel from "./User.model.js"
+
+import orderModel from "../order/Order.model.js"
 
 export const getUser = async (req, res) => {
     try {
@@ -24,6 +26,7 @@ export const getUser = async (req, res) => {
         return res.status(500).json({
             status: "500",
             message: "cant find user",
+            error: error.message,
             data: null
         })
 
@@ -44,12 +47,57 @@ export const getAll = async (req, res) => {
         return res.status(500).json({
             status: "500",
             message: "cant find users",
+            error: error.message,
             data: null
         })
 
     }
 }
 export const deleteUser = async (req, res) => {
+    try {
+        const UserId = req.params.id
+
+        // const userNameType = req.body.name
+        // const userName = user.name
+
+        // if (userNameType !== userName) {
+        //     return res.status(400).json({
+        //         message: "Wrong name"
+        //     })
+        // }
+        // 1. מצא את המשתמש
+        const user = await userModel.findById(UserId)
+        if (!user) {
+            return res.status(404).json({
+                status: "404",
+                message: "User doesn't exist",
+                data: null
+            })
+        }
+
+        await Promise.all([
+            productModel.deleteMany({ createdBy: UserId }),
+
+            orderModel.deleteMany({ orderedBy: UserId }),
+        ])
+        // 3. מחיקה
+        await userModel.findByIdAndDelete(UserId)
+
+        res.status(200).json({
+            status: "200",
+            message: `User with email ${user.email} deleted successfully`,
+            data: null
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            status: "500",
+            message: "Error during deletion",
+            data: error.message
+        })
+    }
+}
+export const deleteMyUser = async (req, res) => {
     try {
         const UserId = req.params.id
         const { password } = req.body
@@ -73,8 +121,12 @@ export const deleteUser = async (req, res) => {
                 data: null
             })
         }
+        await Promise.all([
+            productModel.deleteMany({ createdBy: UserId }),
 
-        // 3. מחיקה
+            orderModel.deleteMany({ orderedBy: UserId }),
+        ])
+        // 3. מחיקהs
         await userModel.findByIdAndDelete(UserId)
 
         res.status(200).json({
@@ -140,76 +192,11 @@ export const updateUser = async (req, res) => {
     }
 }
 
-const generateCode = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-};
 
-export const requestPasswordReset = async (req, res) => {
-    try {
-        const { email } = req.body
-
-        const user = await userModel.findOne({ email })
-        if (!user) {
-            return res.status(404).json({ message: "User not found" })
-        }
-
-        // Generate secure token
-        const resetToken = generateCode()
-
-        user.resetPasswordToken = resetToken
-        user.resetPasswordExpiry = Date.now() + 60 * 60 * 1000 // 1 hour
-        await user.save()
-
-        // Send email
-        await sendResetPasswordEmail(email, resetToken)
-
-        res.json({ message: `Password reset email sent` })
-
-    } catch (error) {
-        return res.status(500).json({
-            status: "500",
-            message: "error",
-            data: error.message
-        })
-    }
-}
-
-
-export const resetPassword = async (req, res) => {
-    try {
-        const { token, newPassword } = req.body
-
-        // Find user with valid reset token
-        const user = await userModel.findOne({
-            resetPasswordToken: token,
-            resetPasswordExpiry: { $gt: Date.now() }
-        })
-
-        if (!user) {
-            return res.status(400).json({ message: "Invalid or expired token" })
-        }
-
-        // Just set the new password — pre-save hook will hash it automatically
-        user.password = newPassword
-        user.resetPasswordToken = null
-        user.resetPasswordExpiry = null
-
-        await user.save()
-
-        res.json({ message: "Password reset successfully" })
-
-    } catch (error) {
-        return res.status(500).json({
-            status: "500",
-            message: "error",
-            data: error.message
-        })
-    }
-}
 
 export const promoteToAdmin = async (req, res) => {
     try {
-        const { userId } = req.body
+        const userId = req.params.id
 
         const user = await userModel.findByIdAndUpdate(
             userId,
@@ -248,6 +235,19 @@ export const addAddress = async (req, res) => {
         if (!user) return res.status(404).json({
             status: "404",
             message: "user not found",
+            data: null
+        })
+
+        const alreadyExists = user.addresses.some(
+            addr =>
+                addr.street === street &&
+                addr.city === city &&
+                addr.country === country &&
+                addr.zipCode === zipCode
+        )
+        if (alreadyExists) return res.status(400).json({
+            status: "400",
+            message: "address already exists",
             data: null
         })
 

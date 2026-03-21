@@ -1,17 +1,21 @@
 import { Router } from "express"
-import { createProduct, getProduct, getAllProducts, getUsersProducts, deleteProduct, updateProduct } from "./Product.controller.js"
+import { createProduct, getProduct, getAllProducts, getUsersProducts, deleteProduct, updateProduct, addRating } from "./Product.controller.js"
 import { authMiddleware } from "../../shared/middlewares/shared.middlewares.js"
 import { productPremiision } from "../../shared/middlewares/shared.productPR.js"
 import { uploadsingle } from "../../shared/middlewares/Upload.middleware.js"
+import { isAdmin } from "../../shared/middlewares/shared.admin.js"
+import { validateRequest } from "../../shared/middlewares/validateRequst.js"
+import { createProductSchema, updateProductSchema, addRatingSchema, productIdParamsSchema, userIdParamsSchema } from "../../shared/validators/products.schemas.js"
 
 const productrout = Router()
 
 
-productrout.post("/", authMiddleware, uploadsingle, createProduct)
-productrout.get("/:id", getProduct)
+productrout.post("/", authMiddleware, isAdmin, uploadsingle, validateRequest(createProductSchema, "body"), createProduct)
 productrout.get("/", getAllProducts)
-productrout.get("/user/:id", getUsersProducts)
-productrout.delete("/:id", authMiddleware, productPremiision, deleteProduct)
-productrout.patch("/:id", authMiddleware, productPremiision, updateProduct)
+productrout.get("/user/:id", validateRequest(userIdParamsSchema, "params"), getUsersProducts)
+productrout.get("/:id", validateRequest(productIdParamsSchema, "params"), getProduct)
+productrout.delete("/:id", authMiddleware, isAdmin, productPremiision, validateRequest(productIdParamsSchema, "params"), deleteProduct)
+productrout.put("/:id", authMiddleware, isAdmin, productPremiision, validateRequest(productIdParamsSchema, "params"), validateRequest(updateProductSchema, "body"), updateProduct)
+productrout.post("/:id/rating", authMiddleware, validateRequest(productIdParamsSchema, "params"), validateRequest(addRatingSchema, "body"), addRating)
 
 export default productrout

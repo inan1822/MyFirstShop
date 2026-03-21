@@ -5,9 +5,9 @@ export const checkPermissions = (req, res, next) => {
     const { id: userIdFromUrl } = req.params
 
     if (String(userIdFromToken) !== String(userIdFromUrl)) {
-        return res.status(401).json({
-            status: 401,
-            message: `try using your id ${userIdFromToken}`,
+        return res.status(403).json({
+            status: "403",
+            message: "Access denied: you can only modify your own account",
             data: null
         })
     }

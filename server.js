@@ -2,88 +2,111 @@ import express from "express"
 import authRouter from "./src/featchers/auth/auth.routes.js"
 import userRouter from "./src/featchers/users/users.routes.js"
 import productrout from "./src/featchers/products/Product.Routes.js"
+import orderRouter from "./src/featchers/order/order.routes.js"
+import cartRouter from "./src/featchers/cart/cart.routes.js"
 import mongoConnect from "./src/config/db.js"
 import dotenv from "dotenv"
-// import cloudinary from "./src/config/cloudinary.js"
 import rateLimit from "express-rate-limit"
 import cors from "cors"
-
-
-
+import helmet from "helmet"
+import hpp from "hpp"
+import { createServer } from "http"
+import { initSocket } from "./src/config/socket.js"
+import errorHandler from "./src/shared/middlewares/errorHandler.js"
+import morgan from "morgan"
 dotenv.config()
-// לא נחוץ
-// cloudinary.config()
+
 const app = express()
-// option 1
-// app.use(cors())
+const httpServer = createServer(app)
+initSocket(httpServer)
 
-// option 2
-// app.use(cors({ origin: "http://127.0.0.1:5500" }))
 
-// option 3
+app.use(helmet())
+app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"))
 
 const allowedOrigins = ["http://127.0.0.1:5500", "http://localhost:5173"]
 
-const corsOptions = {
+app.use(cors({
     origin: function (origin, callback) {
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true)
         } else {
-            callback(new Error("origine not allowed"))
+            callback(new Error("Origin not allowed"))
         }
-    }
-}
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true
+}))
 
-app.use(cors(corsOptions))
 
 const blockOriginForPost = ["http://127.0.0.1:5500", "http://127.0.0.1:5501"]
+
 app.use((req, res, next) => {
     const origin = req.get("origin")
-    const isBlockedOrigin = Array.isArray(blockOriginForPost)
-        ? blockOriginForPost.includes(origin)
-        : origin === blockOriginForPost
+    const isBlockedOrigin = blockOriginForPost.includes(origin)
+    const isWriteMethod = ["POST", "PUT", "DELETE"].includes(req.method)
 
-    if ((req.method === "post" || req.method === "put" || req.method === "delete") && origin && isBlockedOrigin)
+    if (isWriteMethod && origin && isBlockedOrigin) {
         return res.status(403).json({
-            message: "not allowed to do post/delet/put"
+            status: "403",
+            message: "Not allowed to perform POST/PUT/DELETE",
+            data: null
         })
+    }
     next()
 })
 
 
-const globalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 222,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: "to much reqests"
-})
-// בשביל להבדיל בין משתמשים,מביא את הבתובת שלי ולא של
-app.set("trust proxy", 1)
-app.use(globalLimiter)
-
 app.use(express.json())
 
-app.use("/log", authRouter)
-app.use("/user", userRouter)
-app.use("/product", productrout)
+
+app.use(hpp())
+
+
+app.set("trust proxy", 1)
+
+
+const authLimiter = rateLimit({
+    windowMs: 60 * 1000,       // דקה
+    limit: 10,                  // 10 ניסיונות
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        status: "429",
+        message: "Too many attempts, please try again after a minute",
+        data: null
+    }
+})
+
+const globalLimiter = rateLimit({
+    windowMs: 60 * 1000,       // דקה
+    limit: 100,                 // 100 בקשות
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        status: "429",
+        message: "Too many requests, please slow down",
+        data: null
+    }
+})
+
+
+app.use("/log", authLimiter, authRouter)   // מחמיר על auth
+app.use("/user", globalLimiter, userRouter)
+app.use("/product", globalLimiter, productrout)
+app.use("/order", globalLimiter, orderRouter)
+app.use("/cart", globalLimiter, cartRouter)
 
 app.get("/", (req, res) => {
     res.status(200).send("server is running")
 })
 
+app.use(errorHandler)
 
 mongoConnect().then(() => {
-    app.listen(3000, () => {
+    httpServer.listen(3000, () => {
         console.log("Database connected and server is running on port 3000")
     })
 }).catch(err => {
     console.log("Failed to connect to DB:", err)
 })
-
-
-
-
-
-
-

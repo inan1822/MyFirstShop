@@ -79,8 +79,15 @@ const productSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user',
         required: true
+
     }
 }, { timestamps: true })
+
+productSchema.index({ createdBy: 1 })
+productSchema.index({ category: 1 })
+productSchema.index({ isActive: 1 })
+productSchema.index({ category: 1, Price: 1 })
+
 
 
 const productModel = mongoose.model("product", productSchema)
@@ -88,7 +95,7 @@ export default productModel
 
 
 
-// ?????????????????????
+
 
 
 

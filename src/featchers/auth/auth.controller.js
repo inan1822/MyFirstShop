@@ -81,6 +81,28 @@ export async function verifyEmail(req, res) {
         res.status(500).json({ error: "Something went wrong" });
     }
 }
+// export const logout = async (req, res) => {
+//     try {
+
+
+export const logout = async (req, res) => {
+    try {
+        await userModel.findByIdAndUpdate(req.user.id, { token: null })
+
+        res.status(200).json({
+            status: "200",
+            message: "Logged out successfully",
+            data: null
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            status: "500",
+            message: "Server error",
+            data: error.message
+        })
+    }
+}
 
 export const login = async (req, res) => {
     try {
@@ -116,7 +138,10 @@ export const login = async (req, res) => {
             await emailUser.save()
             await sendVerificationEmail(email, code)  // reuse your existing function
 
-            return res.status(200).json({ message: "2FA code sent to your email" })
+            return res.status(200).json({
+                message: "2FA code sent to your email",
+                debug: `remove code from here later ${code}`
+            })
         }
         const token = jwt.sign(
             // כדאי לקרוא לזה id, וזה מה שיהיה בתוך req.user אחרי ה-verify
@@ -127,13 +152,15 @@ export const login = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "2h" }
         )
+        await userModel.findByIdAndUpdate(emailUser._id, { token: token })
 
         return res.status(200).json({
             status: "200",
             message: "loged in ",
             data: {
                 token: token,
-                userID: emailUser._id
+                userID: emailUser._id,
+
             }
         })
 
@@ -146,6 +173,33 @@ export const login = async (req, res) => {
         })
     }
 }
+
+export const getMe = async (req, res) => {
+    try {
+        const user = await userModel.findById(req.user.id).select("-password")
+        if (!user) {
+            return res.status(404).json({
+                status: "404",
+                message: "User not found",
+                data: null
+            })
+        }
+
+        res.status(200).json({
+            status: "200",
+            message: "User fetched successfully",
+            data: user
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            status: "500",
+            message: "Server error",
+            data: error.message
+        })
+    }
+}
+
 
 export const verifyTwoFactor = async (req, res) => {
     try {
@@ -173,11 +227,78 @@ export const verifyTwoFactor = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "2h" }
         )
+        await userModel.findByIdAndUpdate(user._id, { token: token })
+
         res.status(200).json({ message: "Login successful as admin", token })
     } catch (error) {
         return res.status(500).json({
             status: "500",
             message: "internal server error",
+            data: error.message
+        })
+    }
+}
+
+
+
+export const requestPasswordReset = async (req, res) => {
+    try {
+        const { email } = req.body
+
+        const user = await userModel.findOne({ email })
+        if (!user) {
+            return res.status(404).json({ message: "User not found" })
+        }
+
+        // Generate secure token
+        const resetToken = generateCode()
+
+        user.resetPasswordToken = resetToken
+        user.resetPasswordExpiry = Date.now() + 60 * 60 * 1000 // 1 hour
+        await user.save()
+
+        // Send email
+        await sendResetPasswordEmail(email, resetToken)
+
+        res.json({ message: `Password reset email sent` })
+
+    } catch (error) {
+        return res.status(500).json({
+            status: "500",
+            message: "error",
+            data: error.message
+        })
+    }
+}
+
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body
+
+        // Find user with valid reset token
+        const user = await userModel.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpiry: { $gt: Date.now() }
+        })
+
+        if (!user) {
+            return res.status(400).json({ message: "Invalid or expired token" })
+        }
+
+        // Just set the new password — pre-save hook will hash it automatically
+        user.password = newPassword
+        user.resetPasswordToken = null
+        user.resetPasswordExpiry = null
+
+        await user.save()
+
+        res.json({ message: "Password reset successfully" })
+
+    } catch (error) {
+        return res.status(500).json({
+            status: "500",
+            message: "error",
             data: error.message
         })
     }

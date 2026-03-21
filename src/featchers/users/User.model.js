@@ -28,16 +28,21 @@ const addressSchema = new mongoose.Schema({
 
 
 const userSchema = new mongoose.Schema({
+
+
+    token: { type: String, default: null },
     name: {
         type: String,
         required: true,
         trim: true,
         minlength: 2
     },
+
     email: {
+
         type: String,
         required: true,
-        unique: true,
+        unique: true,// is index already
         lowercase: true
     },
     sendVerificationCode: String,
@@ -81,6 +86,7 @@ const userSchema = new mongoose.Schema({
 
 }, { timestamps: true })
 
+userSchema.index({ role: 1 })
 
 
 userSchema.pre("save", async function () {

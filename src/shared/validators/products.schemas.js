@@ -37,3 +37,14 @@ export const productIdParamsSchema = joi.object({
 export const userIdParamsSchema = joi.object({
     id: mongoId
 }).options({ stripUnknown: true })
+
+export const getAllProductsQuerySchema = joi.object({
+    page: joi.number().integer().min(1).default(1),
+    limit: joi.number().integer().min(1).max(100).default(10),
+    category: joi.string().valid("electronics", "clothing", "food"),
+    minPrice: joi.number().min(0),
+    maxPrice: joi.number().min(0),
+    sort: joi.string().valid("Price", "createdAt", "averageRating", "sold").default("createdAt"),
+    order: joi.string().valid("asc", "desc").default("desc"),
+    search: joi.string().max(100)
+}).options({ stripUnknown: true })

@@ -7,6 +7,7 @@ export const getCart = async (req, res) => {
         const UserId = req.user.id
 
         const cart = await cartModel.findOne({ userId: UserId })
+            .lean()
         if (!cart) {
             return res.status(200).json({
                 status: "200",
@@ -245,6 +246,7 @@ export const syncCart = async (req, res) => {
 
         // find or create cart
         let cart = await cartModel.findOne({ userId: UserId })
+            .lean()
         if (!cart) {
             cart = await cartModel.create({ userId: UserId, items: [] })
         }

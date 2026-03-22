@@ -1,7 +1,8 @@
 import orderModel from "./Order.model.js"
 import productModel from "../products/Products.Model.js"
 import userModel from "../users/User.model.js"
-import { sendOrderEmail } from "../../shared/utils/mailer.js"
+import { sendOrderEmail, sendOrderStatusEmail } from "../../shared/utils/mailer.js"
+import { getIO } from "../../config/socket.js"
 
 
 export const createOrder = async (req, res) => {
@@ -121,6 +122,7 @@ export const getMyOrders = async (req, res) => {
 
         const orders = await orderModel.find({ orderedBy: UserId })
             .sort({ createdAt: -1 })
+            .lean()
 
         return res.status(200).json({
             status: "200",
@@ -144,6 +146,7 @@ export const getOrderById = async (req, res) => {
         const orderId = req.params.id
 
         const order = await orderModel.findById(orderId)
+            .lean()
         if (!order) {
             return res.status(404).json({
                 status: "404",
@@ -189,6 +192,7 @@ export const getAllOrders = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
+            .lean()
 
         return res.status(200).json({
             status: "200",
@@ -237,6 +241,11 @@ export const updateOrderStatus = async (req, res) => {
                 message: "Order not found",
                 data: null
             })
+        }
+
+        const user = await userModel.findById(order.orderedBy)
+        if (user) {
+            await sendOrderStatusEmail(user.email, order._id, orderStatus)
         }
 
         return res.status(200).json({

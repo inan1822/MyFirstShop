@@ -53,6 +53,7 @@ const userSchema = new mongoose.Schema({
     sendVerificationCodeExpiry: Date,
 
     password: {
+        select: false,
         type: String,
         required: true,
         validate: {
@@ -91,7 +92,7 @@ userSchema.index({ role: 1 })
 
 userSchema.pre("save", async function () {
     if (!this.isModified("password")) return
-    this.password = await bcrypt.hash(this.password, 10)
+    this.password = await bcrypt.hash(this.password, 12)
 })
 
 const userModel = mongoose.model("user", userSchema)

@@ -11,7 +11,7 @@ export const checkPermissions = (req, res, next) => {
             data: null
         })
     }
-    console.log(userIdFromToken);
+    // console.log(userIdFromToken);
 
     next()
 }

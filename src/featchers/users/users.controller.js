@@ -8,7 +8,7 @@ import orderModel from "../order/Order.model.js"
 export const getUser = async (req, res) => {
     try {
         const UserId = req.params.id
-        const OneUser = await userModel.findById(UserId)
+        const OneUser = await userModel.findById(UserId).lean()
         if (!OneUser)
             return res.status(400).json({
                 status: "400",
@@ -35,7 +35,7 @@ export const getUser = async (req, res) => {
 
 export const getAll = async (req, res) => {
     try {
-        const allUsers = await userModel.find().select("-password")
+        const allUsers = await userModel.find().select("-password").lean()
 
         res.status(200).json({
             status: "200",
@@ -103,7 +103,7 @@ export const deleteMyUser = async (req, res) => {
         const { password } = req.body
 
         // 1. מצא את המשתמש
-        const user = await userModel.findById(UserId)
+        const user = await userModel.findById(UserId).select("+password")
         if (!user) {
             return res.status(404).json({
                 status: "404",
@@ -151,7 +151,7 @@ export const updateUser = async (req, res) => {
         const { name, email, currentPassword, newPassword } = req.body
         const userId = req.params.id
 
-        const user = await userModel.findById(userId)
+        const user = await userModel.findById(userId).select("+password")
 
         if (!user)
             return res.status(404).json({

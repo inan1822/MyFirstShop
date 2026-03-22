@@ -1,10 +1,10 @@
 import multer from "multer"
 
-const Storege = multer.memoryStorage()
+const storage = multer.memoryStorage()
 
 const upload = multer({
     // מקום לאיחסון
-    Storege,
+    storage,
     // מגבלת גודל
     limits: { filesize: 5 * 1024 * 1024 },
     fileFilter: (req, file, callback) => {

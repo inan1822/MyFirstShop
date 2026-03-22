@@ -70,3 +70,59 @@ export const sendOrderEmail = async (to, orderId, totalPrice, items) => {
         console.log(error, "Order email failed");
     }
 };
+
+
+export const sendOrderStatusEmail = async (to, orderId, newStatus) => {
+    const statusMessages = {
+        processing: {
+            subject: "Your order is being processed",
+            color: "#F59E0B",
+            message: "We have received your order and it is currently being processed."
+        },
+        shipped: {
+            subject: "Your order has been shipped! ",
+            color: "#3B82F6",
+            message: "Great news! Your order is on its way to you."
+        },
+        delivered: {
+            subject: "Your order has been delivered! ",
+            color: "#10B981",
+            message: "Your order has been delivered. We hope you enjoy your purchase!"
+        },
+        cancelled: {
+            subject: "Your order has been cancelled",
+            color: "#EF4444",
+            message: "Your order has been cancelled. If you have any questions, please contact us."
+        }
+    }
+
+    const { subject, color, message } = statusMessages[newStatus]
+
+    try {
+        await transporter.sendMail({
+            from: `"My Shop" <${process.env.EMAIL_USER}>`,
+            to,
+            subject: `${subject} - Order #${orderId}`,
+            text: `Order #${orderId} status update: ${newStatus}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: ${color};">${subject}</h2>
+                    <p>Hi there,</p>
+                    <p>${message}</p>
+                    <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0;">
+                        <p style="margin: 0;"><strong>Order ID:</strong> #${orderId}</p>
+                        <p style="margin: 8px 0 0;"><strong>New Status:</strong> 
+                            <span style="color: ${color}; font-weight: bold; text-transform: uppercase;">
+                                ${newStatus}
+                            </span>
+                        </p>
+                    </div>
+                    <p>Thank you for shopping with us!</p>
+                </div>
+            `
+        })
+        console.log("Order status email sent successfully")
+    } catch (error) {
+        console.log(error, "Order status email failed")
+    }
+}

@@ -67,7 +67,7 @@ export const createProduct = async (req, res) => {
 export const getProduct = async (req, res) => {
     try {
         const productID = req.params.id
-        const OneProduct = await productModel.findById(productID)
+        const OneProduct = await productModel.findById({ _id: productID, isActive: true })
         if (!OneProduct)
             return res.status(404).json({
                 status: "404",
@@ -92,25 +92,80 @@ export const getProduct = async (req, res) => {
 }
 export const getAllProducts = async (req, res) => {
     try {
-        const allProducts = await productModel.find()
+        const {
+            page = 1,
+            limit = 10,
+            category,
+            minPrice,
+            maxPrice,
+            sort = "createdAt",
+            order = "desc",
+            search
+        } = req.query
+
+        // build filter object
+        const filter = { isActive: true }
+
+        if (category) {
+            filter.category = category
+        }
+
+        if (minPrice || maxPrice) {
+            filter.Price = {}
+            if (minPrice) filter.Price.$gte = Number(minPrice)
+            if (maxPrice) filter.Price.$lte = Number(maxPrice)
+        }
+
+        if (search) {
+            filter.Title = { $regex: search, $options: "i" }  // case-insensitive search
+        }
+
+        // pagination
+        const pageNum = parseInt(page)
+        const limitNum = parseInt(limit)
+        const skip = (pageNum - 1) * limitNum
+
+        // sort
+        const sortOrder = order === "asc" ? 1 : -1
+        const sortObj = { [sort]: sortOrder }
+
+        // run queries in parallel for performance
+        const [products, totalCount] = await Promise.all([
+            productModel.find(filter)
+                .select("Title Price description category stock sold averageRating imageUrl isActive createdAt")
+                .sort(sortObj)
+                .skip(skip)
+                .limit(limitNum)
+                .lean(),
+            productModel.countDocuments(filter)
+        ])
 
         return res.status(200).json({
             status: "200",
             message: "Successfully retrieved all products",
-            data: allProducts
+            data: {
+                products,
+                currentPage: pageNum,
+                totalPages: Math.ceil(totalCount / limitNum),
+                totalCount,
+                hasNextPage: pageNum < Math.ceil(totalCount / limitNum),
+                hasPrevPage: pageNum > 1
+            }
         })
+
     } catch (error) {
         return res.status(500).json({
             status: "500",
-            message: "cannot get products",
+            message: "Cannot get products",
             data: error.message
         })
     }
 }
+
 export const getUsersProducts = async (req, res) => {
     try {
         const userId = req.params.id
-        const userProducts = await productModel.find({ createdBy: userId })
+        const userProducts = await productModel.find({ createdBy: userId, isActive: true })
 
         if (!userProducts)
             return res.status(404).json({
@@ -136,31 +191,31 @@ export const getUsersProducts = async (req, res) => {
 }
 export const deleteProduct = async (req, res) => {
     try {
-
         const productId = req.params.id
-        const userProducts = await productModel.findById({ _id: productId })
-        if (!userProducts)
+
+        const product = await productModel.findById(productId)
+        if (!product) {
             return res.status(404).json({
                 status: "404",
-                message: "cannot find product",
+                message: "Cannot find product",
                 data: null
             })
-
-        const imgaeId = userProducts.imagePublicId
-        if (imgaeId) {
-            await deleteImage(imgaeId)
         }
 
-        await productModel.findByIdAndDelete({ _id: productId })
+        // soft delete — just hide it instead of removing from DB
+        product.isActive = false
+        await product.save()
+
         return res.status(200).json({
             status: "200",
-            message: "Successfully deleted product",
+            message: "Product deleted successfully",
             data: null
         })
+
     } catch (error) {
         return res.status(500).json({
             status: "500",
-            message: "cannot delete product",
+            message: "Cannot delete product",
             data: error.message
         })
     }

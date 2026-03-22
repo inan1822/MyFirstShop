@@ -91,11 +91,11 @@ const globalLimiter = rateLimit({
 })
 
 
-app.use("/log", authLimiter, authRouter)   // מחמיר על auth
-app.use("/user", globalLimiter, userRouter)
-app.use("/product", globalLimiter, productrout)
-app.use("/order", globalLimiter, orderRouter)
-app.use("/cart", globalLimiter, cartRouter)
+app.use("/api/v1/auth", authLimiter, authRouter)
+app.use("/api/v1/users", globalLimiter, userRouter)
+app.use("/api/v1/products", globalLimiter, productrout)
+app.use("/api/v1/orders", globalLimiter, orderRouter)
+app.use("/api/v1/cart", globalLimiter, cartRouter)
 
 app.get("/", (req, res) => {
     res.status(200).send("server is running")

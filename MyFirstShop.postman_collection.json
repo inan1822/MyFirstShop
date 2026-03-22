@@ -32,18 +32,20 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/log/register",
+                            "raw": "{{base_url}}/api/v1/auth/register",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "log",
+                                "api",
+                                "v1",
+                                "auth",
                                 "register"
                             ]
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"123456\"\n}"
+                            "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"123456789\"\n}"
                         }
                     }
                 },
@@ -58,18 +60,20 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/log/verify",
+                            "raw": "{{base_url}}/api/v1/auth/verify",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "log",
+                                "api",
+                                "v1",
+                                "auth",
                                 "verify"
                             ]
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"code\": \"123456\"\n}"
+                            "raw": "{\n  \"email\": \"john@example.com\",\n  \"code\": \"123456\"\n}"
                         }
                     }
                 },
@@ -84,18 +88,20 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/log/login",
+                            "raw": "{{base_url}}/api/v1/auth/login",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "log",
+                                "api",
+                                "v1",
+                                "auth",
                                 "login"
                             ]
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"123456\"\n}"
+                            "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"123456789\"\n}"
                         }
                     }
                 },
@@ -110,18 +116,20 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/log/admin",
+                            "raw": "{{base_url}}/api/v1/auth/admin",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "log",
+                                "api",
+                                "v1",
+                                "auth",
                                 "admin"
                             ]
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"code\": \"123456\"\n}"
+                            "raw": "{\n  \"email\": \"admin@example.com\",\n  \"code\": \"123456\"\n}"
                         }
                     }
                 },
@@ -136,12 +144,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/log/request-password-reset",
+                            "raw": "{{base_url}}/api/v1/auth/request-password-reset",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "log",
+                                "api",
+                                "v1",
+                                "auth",
                                 "request-password-reset"
                             ]
                         },
@@ -162,18 +172,20 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/log/reset-password",
+                            "raw": "{{base_url}}/api/v1/auth/reset-password",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "log",
+                                "api",
+                                "v1",
+                                "auth",
                                 "reset-password"
                             ]
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"token\": \"reset_token_here\",\n  \"newPassword\": \"newpassword123\"\n}"
+                            "raw": "{\n  \"token\": \"reset_token_here\",\n  \"newPassword\": \"newpassword123\",\n  \"confirmPassword\": \"newpassword123\"\n}"
                         }
                     }
                 },
@@ -192,12 +204,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/log/logout",
+                            "raw": "{{base_url}}/api/v1/auth/logout",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "log",
+                                "api",
+                                "v1",
+                                "auth",
                                 "logout"
                             ]
                         }
@@ -214,12 +228,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/log/me",
+                            "raw": "{{base_url}}/api/v1/auth/me",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "log",
+                                "api",
+                                "v1",
+                                "auth",
                                 "me"
                             ]
                         }
@@ -235,12 +251,14 @@
                     "request": {
                         "method": "GET",
                         "url": {
-                            "raw": "{{base_url}}/user/:id",
+                            "raw": "{{base_url}}/api/v1/users/:id",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "user",
+                                "api",
+                                "v1",
+                                "users",
                                 ":id"
                             ],
                             "variable": [
@@ -263,12 +281,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/user/admin",
+                            "raw": "{{base_url}}/api/v1/users/admin",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "user",
+                                "api",
+                                "v1",
+                                "users",
                                 "admin"
                             ]
                         }
@@ -289,12 +309,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/user/:id",
+                            "raw": "{{base_url}}/api/v1/users/:id",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "user",
+                                "api",
+                                "v1",
+                                "users",
                                 ":id"
                             ],
                             "variable": [
@@ -321,12 +343,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/user/admin/:id",
+                            "raw": "{{base_url}}/api/v1/users/admin/:id",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "user",
+                                "api",
+                                "v1",
+                                "users",
                                 "admin",
                                 ":id"
                             ],
@@ -354,12 +378,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/user/:id",
+                            "raw": "{{base_url}}/api/v1/users/:id",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "user",
+                                "api",
+                                "v1",
+                                "users",
                                 ":id"
                             ],
                             "variable": [
@@ -371,7 +397,7 @@
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"New Name\"\n}"
+                            "raw": "{\n  \"name\": \"New Name\",\n  \"currentPassword\": \"oldpassword123\"\n}"
                         }
                     }
                 },
@@ -386,12 +412,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/user/role/:id",
+                            "raw": "{{base_url}}/api/v1/users/role/:id",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "user",
+                                "api",
+                                "v1",
+                                "users",
                                 "role",
                                 ":id"
                             ],
@@ -419,12 +447,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/user/address",
+                            "raw": "{{base_url}}/api/v1/users/address",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "user",
+                                "api",
+                                "v1",
+                                "users",
                                 "address"
                             ]
                         },
@@ -445,12 +475,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/user/address/:addressId",
+                            "raw": "{{base_url}}/api/v1/users/address/:addressId",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "user",
+                                "api",
+                                "v1",
+                                "users",
                                 "address",
                                 ":addressId"
                             ],
@@ -479,12 +511,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/product",
+                            "raw": "{{base_url}}/api/v1/products",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "product"
+                                "api",
+                                "v1",
+                                "products"
                             ]
                         },
                         "body": {
@@ -529,12 +563,54 @@
                     "request": {
                         "method": "GET",
                         "url": {
-                            "raw": "{{base_url}}/product",
+                            "raw": "{{base_url}}/api/v1/products?page=1&limit=10",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "product"
+                                "api",
+                                "v1",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "minPrice",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "maxPrice",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "sort",
+                                    "value": "createdAt",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "order",
+                                    "value": "desc",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                }
                             ]
                         }
                     }
@@ -544,12 +620,14 @@
                     "request": {
                         "method": "GET",
                         "url": {
-                            "raw": "{{base_url}}/product/:id",
+                            "raw": "{{base_url}}/api/v1/products/:id",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "product",
+                                "api",
+                                "v1",
+                                "products",
                                 ":id"
                             ],
                             "variable": [
@@ -566,12 +644,14 @@
                     "request": {
                         "method": "GET",
                         "url": {
-                            "raw": "{{base_url}}/product/user/:id",
+                            "raw": "{{base_url}}/api/v1/products/user/:id",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "product",
+                                "api",
+                                "v1",
+                                "products",
                                 "user",
                                 ":id"
                             ],
@@ -599,12 +679,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/product/:id",
+                            "raw": "{{base_url}}/api/v1/products/:id",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "product",
+                                "api",
+                                "v1",
+                                "products",
                                 ":id"
                             ],
                             "variable": [
@@ -631,13 +713,46 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/product/:id",
+                            "raw": "{{base_url}}/api/v1/products/:id",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "product",
+                                "api",
+                                "v1",
+                                "products",
                                 ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "PRODUCT_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Restore Product (Admin)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/products/:id/restore",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                ":id",
+                                "restore"
                             ],
                             "variable": [
                                 {
@@ -663,12 +778,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/product/:id/rating",
+                            "raw": "{{base_url}}/api/v1/products/:id/rating",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "product",
+                                "api",
+                                "v1",
+                                "products",
                                 ":id",
                                 "rating"
                             ],
@@ -705,12 +822,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/order",
+                            "raw": "{{base_url}}/api/v1/orders",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "order"
+                                "api",
+                                "v1",
+                                "orders"
                             ]
                         },
                         "body": {
@@ -730,12 +849,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/order/my-orders",
+                            "raw": "{{base_url}}/api/v1/orders/my-orders",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "order",
+                                "api",
+                                "v1",
+                                "orders",
                                 "my-orders"
                             ]
                         }
@@ -752,12 +873,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/order/:id",
+                            "raw": "{{base_url}}/api/v1/orders/:id",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "order",
+                                "api",
+                                "v1",
+                                "orders",
                                 ":id"
                             ],
                             "variable": [
@@ -780,12 +903,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/order?page=1&limit=10",
+                            "raw": "{{base_url}}/api/v1/orders?page=1&limit=10",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "order"
+                                "api",
+                                "v1",
+                                "orders"
                             ],
                             "query": [
                                 {
@@ -815,12 +940,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/order/:id/status",
+                            "raw": "{{base_url}}/api/v1/orders/:id/status",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "order",
+                                "api",
+                                "v1",
+                                "orders",
                                 ":id",
                                 "status"
                             ],
@@ -848,12 +975,14 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/order/:id/cancel",
+                            "raw": "{{base_url}}/api/v1/orders/:id/cancel",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
-                                "order",
+                                "api",
+                                "v1",
+                                "orders",
                                 ":id",
                                 "cancel"
                             ],
@@ -882,11 +1011,13 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/cart",
+                            "raw": "{{base_url}}/api/v1/cart",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
+                                "api",
+                                "v1",
                                 "cart"
                             ]
                         }
@@ -907,11 +1038,13 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/cart",
+                            "raw": "{{base_url}}/api/v1/cart",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
+                                "api",
+                                "v1",
                                 "cart"
                             ]
                         },
@@ -936,11 +1069,13 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/cart/:productId",
+                            "raw": "{{base_url}}/api/v1/cart/:productId",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
+                                "api",
+                                "v1",
                                 "cart",
                                 ":productId"
                             ],
@@ -968,11 +1103,13 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/cart/:productId",
+                            "raw": "{{base_url}}/api/v1/cart/:productId",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
+                                "api",
+                                "v1",
                                 "cart",
                                 ":productId"
                             ],
@@ -996,11 +1133,13 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/cart",
+                            "raw": "{{base_url}}/api/v1/cart",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
+                                "api",
+                                "v1",
                                 "cart"
                             ]
                         }
@@ -1021,11 +1160,13 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/cart/sync",
+                            "raw": "{{base_url}}/api/v1/cart/sync",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
+                                "api",
+                                "v1",
                                 "cart",
                                 "sync"
                             ]

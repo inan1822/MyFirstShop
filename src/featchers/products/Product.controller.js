@@ -165,7 +165,7 @@ export const getAllProducts = async (req, res) => {
 export const getUsersProducts = async (req, res) => {
     try {
         const userId = req.params.id
-        const userProducts = await productModel.find({ createdBy: userId, isActive: true })
+        const userProducts = await productModel.find({ createdBy: userId, isActive: true }).lean()
 
         if (!userProducts)
             return res.status(404).json({

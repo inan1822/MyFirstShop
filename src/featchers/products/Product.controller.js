@@ -204,7 +204,9 @@ export const deleteProduct = async (req, res) => {
 
         // soft delete — just hide it instead of removing from DB
         product.isActive = false
-        await deleteImage(product.imagePublicId)
+        if (product.imagePublicId) {
+            await deleteImage(product.imagePublicId)
+        }
         await product.save()
 
         return res.status(200).json({

@@ -204,6 +204,7 @@ export const deleteProduct = async (req, res) => {
 
         // soft delete — just hide it instead of removing from DB
         product.isActive = false
+        await deleteImage(product.imagePublicId)
         await product.save()
 
         return res.status(200).json({
@@ -260,7 +261,7 @@ export const updateProduct = async (req, res) => {
         if (req.file) {
             // delete old image from cloudinary first
             if (product.imagePublicId) {
-                await deleteFromCloud(product.imagePublicId)
+                await deleteImage(product.imagePublicId)
             }
             const result = await uploadToCloud(req.file.buffer, "image")
             req.body.imageUrl = result.secure_url
@@ -365,3 +366,19 @@ export const addRating = async (req, res) => {
         })
     }
 }
+
+
+export const restoreProduct = async (req, res) => {
+    try {
+        const product = await productModel.findByIdAndUpdate(
+            req.params.id,
+            { isActive: true },
+            { new: true }
+        )
+        if (!product) return res.status(404).json({ status: "404", message: "Product not found", data: null })
+        return res.status(200).json({ status: "200", message: "Product restored", data: product })
+    } catch (error) {
+        return res.status(500).json({ status: "500", message: "Server error", data: error.message })
+    }
+}
+

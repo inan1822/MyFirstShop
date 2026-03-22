@@ -246,7 +246,7 @@ export const syncCart = async (req, res) => {
 
         // find or create cart
         let cart = await cartModel.findOne({ userId: UserId })
-            .lean()
+
         if (!cart) {
             cart = await cartModel.create({ userId: UserId, items: [] })
         }

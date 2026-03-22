@@ -67,7 +67,7 @@ export const createProduct = async (req, res) => {
 export const getProduct = async (req, res) => {
     try {
         const productID = req.params.id
-        const OneProduct = await productModel.findById({ _id: productID, isActive: true })
+        const OneProduct = await productModel.findOne({ _id: productID, isActive: true })
         if (!OneProduct)
             return res.status(404).json({
                 status: "404",

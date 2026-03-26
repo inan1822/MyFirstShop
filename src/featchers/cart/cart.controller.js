@@ -162,17 +162,29 @@ export const updateCartItem = async (req, res) => {
     }
 }
 
-// DELETE /:productId — remove specific item from cart
+
 export const removeFromCart = async (req, res) => {
     try {
-        const UserId = req.user.id
+        const userId = req.user.id
         const { productId } = req.params
 
-        const cart = await cartModel.findOne({ userId: UserId })
+        const cart = await cartModel.findOne({ userId })
         if (!cart) {
             return res.status(404).json({
                 status: "404",
                 message: "Cart not found",
+                data: null
+            })
+        }
+
+
+        const itemExists = cart.items.some(
+            item => item.productId.toString() === productId
+        )
+        if (!itemExists) {
+            return res.status(404).json({
+                status: "404",
+                message: "Item not found in cart",
                 data: null
             })
         }
@@ -198,7 +210,7 @@ export const removeFromCart = async (req, res) => {
     }
 }
 
-// DELETE / — clear the whole cart
+
 export const clearCart = async (req, res) => {
     try {
         const UserId = req.user.id

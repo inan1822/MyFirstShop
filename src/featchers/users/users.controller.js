@@ -8,7 +8,7 @@ import orderModel from "../order/Order.model.js"
 export const getUser = async (req, res) => {
     try {
         const UserId = req.params.id
-        const OneUser = await userModel.findById(UserId).lean()
+        const OneUser = await userModel.findById(UserId).select("-token -sendVerificationCode -sendVerificationCodeExpiry -resetPasswordToken-resetPasswordExpiry").lean()
         if (!OneUser)
             return res.status(400).json({
                 status: "400",
@@ -19,7 +19,7 @@ export const getUser = async (req, res) => {
         res.status(201).json({
             status: "201",
             message: `user ${UserId} found`,
-            data: OneUser
+            data: OneUser,
         })
 
     } catch (error) {
@@ -160,15 +160,17 @@ export const updateUser = async (req, res) => {
                 data: null
             })
 
-
+            
         const isPasswordCorrect = await bcrypt.compare(currentPassword, user.password)
-        if (!currentPassword || !isPasswordCorrect) {
-            return res.status(401).json({
-                status: "401",
-                message: "Incorrect password",
-                data: null
-            })
+        if (email || newPassword) {
+            if (!isPasswordCorrect)  
+                return res.status(401).json({
+                    status: "401",
+                    message: "Incorrect password",
+                    data: null
+                })
         }
+
 
         // Update fields
         if (name) user.name = name

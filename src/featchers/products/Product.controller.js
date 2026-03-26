@@ -103,37 +103,31 @@ export const getAllProducts = async (req, res) => {
             search
         } = req.query
 
-        // build filter object
         const filter = { isActive: true }
 
-        if (category) {
-            filter.category = category
-        }
+        if (category) filter.category = category
 
         if (minPrice || maxPrice) {
-            filter.Price = {}
+            filter.Price = {}                                    // ✅ capital P — matches schema
             if (minPrice) filter.Price.$gte = Number(minPrice)
             if (maxPrice) filter.Price.$lte = Number(maxPrice)
         }
 
-        if (search) {
-            filter.Title = { $regex: search, $options: "i" }  // case-insensitive search
-        }
+        if (search) filter.Title = { $regex: search, $options: "i" }  // ✅ capital T — matches schema
 
-        // pagination
-        const pageNum = parseInt(page)
-        const limitNum = parseInt(limit)
-        const skip = (pageNum - 1) * limitNum
+        const pageNum  = Math.max(1, parseInt(page))
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
+        const skip     = (pageNum - 1) * limitNum
 
-        // sort
         const sortOrder = order === "asc" ? 1 : -1
-        const sortObj = { [sort]: sortOrder }
+        const allowedSortFields = ["createdAt", "Price", "Title"]   // ✅ match schema casing
+        const sortField = allowedSortFields.includes(sort) ? sort : "createdAt"
 
-        // run queries in parallel for performance
         const [products, totalCount] = await Promise.all([
-            productModel.find(filter)
+            productModel
+                .find(filter)
                 .select("Title Price description category stock sold averageRating imageUrl isActive createdAt")
-                .sort(sortObj)
+                .sort({ [sortField]: sortOrder })
                 .skip(skip)
                 .limit(limitNum)
                 .lean(),
@@ -142,7 +136,7 @@ export const getAllProducts = async (req, res) => {
 
         return res.status(200).json({
             status: "200",
-            message: "Successfully retrieved all products",
+            message: "Products retrieved successfully",
             data: {
                 products,
                 currentPage: pageNum,
@@ -157,7 +151,7 @@ export const getAllProducts = async (req, res) => {
         return res.status(500).json({
             status: "500",
             message: "Cannot get products",
-            data: error.message
+            error: error.message  // ✅ this will now show the real error if something still fails
         })
     }
 }
@@ -225,66 +219,40 @@ export const deleteProduct = async (req, res) => {
 }
 
 
-
 export const updateProduct = async (req, res) => {
     try {
         const productId = req.params.id
-        const UserId = req.user.id
+        const userId = req.user.id
         const { Title, Price, description, category, stock, isActive } = req.body
 
-        // check at least one field is provided
-        if (!Title && !Price && !description && !category && stock === undefined && isActive === undefined) {
-            return res.status(400).json({
-                status: "400",
-                message: "Nothing to update, provide at least one field",
-                data: null
-            })
-        }
-
-        if (Price !== undefined && (typeof Price !== 'number' || Price < 0)) {
-            return res.status(400).json({
-                status: "400",
-                message: "Price must be a non-negative number",
-                data: null
-            })
-        }
-
-        // make sure product belongs to this user
-        const product = await productModel.findOne({ _id: productId, createdBy: UserId })
-        if (!product) {
+        const product = await productModel.findOne({ _id: productId, createdBy: userId })
+        if (!product)
             return res.status(404).json({
                 status: "404",
                 message: "Product not found or you don't own it",
                 data: null
             })
-        }
 
         // handle image update
         if (req.file) {
-            // delete old image from cloudinary first
-            if (product.imagePublicId) {
+            if (product.imagePublicId)
                 await deleteImage(product.imagePublicId)
-            }
+
             const result = await uploadToCloud(req.file.buffer, "image")
             req.body.imageUrl = result.secure_url
             req.body.imagePublicId = result.public_id
         }
 
-        // only update fields that were actually provided
-        const updatedProduct = await productModel.findOneAndUpdate(
-            { _id: productId, createdBy: UserId },
-            {
-                ...(Title && { Title }),
-                ...(Price !== undefined && { Price }),
-                ...(description && { description }),
-                ...(category && { category }),
-                ...(stock !== undefined && { stock }),
-                ...(isActive !== undefined && { isActive }),
-                ...(req.body.imageUrl && { imageUrl: req.body.imageUrl }),
-                ...(req.body.imagePublicId && { imagePublicId: req.body.imagePublicId }),
-            },
-            { new: true, runValidators: true }
-        )
+        if (Title) product.Title = Title
+        if (Price !== undefined) product.Price = Price
+        if (description) product.description = description
+        if (category) product.category = category
+        if (stock !== undefined) product.stock = stock
+        if (isActive !== undefined) product.isActive = isActive
+        if (req.body.imageUrl) product.imageUrl = req.body.imageUrl
+        if (req.body.imagePublicId) product.imagePublicId = req.body.imagePublicId
+
+        const updatedProduct = await product.save()
 
         return res.status(200).json({
             status: "200",

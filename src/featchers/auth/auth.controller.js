@@ -12,10 +12,11 @@ import {
 export const register = async (req, res) => {
     try {
         const newUser = await registerService(req.body)
+        
         res.status(201).json({
             status: "201",
             message: "User created successfully",
-            data: newUser
+            data: "check your email for verification"
         })
     } catch (error) {
         res.status(error.status || 500).json({
